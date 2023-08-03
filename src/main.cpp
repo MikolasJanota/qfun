@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
         ->default_val("-");
     app.add_flag("-a, !--no-a", options.accum, "Accumulate strategies.")
         ->default_val(true);
-    app.add_flag("-c, !--no-c", options.cyclic, "Cyclic magic function..")
+    app.add_flag("-c, !--no-c", options.cyclic, "Cyclic magic function.")
         ->default_val(true);
     app.add_flag("-p, !--no-p", options.proximity, "Use proximity.")
         ->default_val(true);
@@ -184,16 +184,16 @@ int main(int argc, char **argv) {
         ->default_val(true);
     app.add_flag("-l, !--no-l", options.learn, "Use learning.")
         ->default_val(true);
-    app.add_option("-E, !--enum", options.win_mv_enum,
-                   "Enumerated winning moves for top-level.")
+    app.add_flag("-E, !--no-enum", options.win_mv_enum,
+                 "Enumerated winning moves for top-level.")
         ->default_val(false);
-    app.add_option("-S, !--seed", options.seed, "Random seed.")->default_val(7);
-    app.add_option("-b, !--blocking", options.blocking,
+    app.add_option("-S, --seed", options.seed, "Random seed.")->default_val(7);
+    app.add_option("-b, --blocking", options.blocking,
                    "Clause blocking for quant levels <LEV>.")
         ->default_val(7);
-    app.add_option("-i, !--interval", options.interval, "Learning interval.")
+    app.add_option("-i, --interval", options.interval, "Learning interval.")
         ->default_val(64);
-    app.add_option("-n, !--initial", options.initial,
+    app.add_option("-n, --initial", options.initial,
                    "Initial refinement for quant levels <LEV>.")
         ->default_val(4);
 #if EXTERNAL_SAT
