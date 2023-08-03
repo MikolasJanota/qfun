@@ -14,6 +14,7 @@
 #include "version.h"
 #include <csignal>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>      // for operator<<, endl, basic_ostream
 #include <memory>        // for allocator, allocator_traits<>:...
 #include <stdexcept>     // for invalid_argument, out_of_range
@@ -328,9 +329,9 @@ void block_move(const Move &wm, Rareqs *ps) {
 }
 
 bool ends_with(const std::string &filename, const char *suf) {
-    int l = strlen(suf);
-    size_t s = filename.length();
-    if ((size_t)l > s)
+    auto l = strlen(suf);
+    auto s = filename.length();
+    if (static_cast<size_t>(l) > s)
         return false;
     while (l)
         if (filename[--s] != suf[--l])
