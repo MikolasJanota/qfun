@@ -20,12 +20,6 @@ template <class SATSolver> class aig2cnf {
           max_id(-1), true_lit(SATSPC::lit_Undef) {}
 
     inline void alloc_vars(Var _max_id) {
-        assert(true_lit ==
-               SATSPC::lit_Undef); // if the true lit was already
-                                   // initialized it means that new IDs were
-                                   // already created and we cannot guarantee
-                                   // that what we are given will be fresh in
-                                   // the current context
         if (max_id > _max_id)
             return;
         max_id = _max_id;
@@ -50,7 +44,7 @@ template <class SATSolver> class aig2cnf {
     Lit true_lit;
     Lit encode(const AigLit &l) {
         if (true_lit == SATSPC::lit_Undef) {
-            true_lit = SATSPC::mkLit(fresh());
+            true_lit = SATSPC::mkLit(var_mng.fresh_var(qlevel));
             sat_solver.addClause(true_lit);
         }
         // factory.print(std::cerr <<"encoding:", l, 2)<<std::endl;
