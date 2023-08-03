@@ -6,23 +6,26 @@
  */
 #pragma once
 #include "aig.h"
+#include "minisat/core/SolverTypes.h"
 #include "minisat_auxiliary.h"
 #include "qtypes.h"
 #include "var_manager.h"
-#include <utility>                     // for pair
-#include <iostream>                    // for basic_ostream::operator<<, ope...
-#include <iostream>                    // for basic_ostream::operator<<, ope...
+#include <iostream> // for basic_ostream::operator<<, ope...
+#include <utility>  // for pair
 template <class SATSolver> class aig2cnf {
   public:
     aig2cnf(VarManager &vm, Level ql, AigFactory &factory,
             SATSolver &_sat_solver)
         : var_mng(vm), qlevel(ql), factory(factory), sat_solver(_sat_solver),
-          max_id(-1), true_lit(SATSPC::mkLit(sat_solver.newVar())) {
-        sat_solver.addClause(true_lit);
-        max_id = SATSPC::var(true_lit);
-    }
+          max_id(-1), true_lit(SATSPC::lit_Undef) {}
 
     inline void alloc_vars(Var _max_id) {
+        assert(true_lit ==
+               SATSPC::lit_Undef); // if the true lit was already
+                                   // initialized it means that new IDs were
+                                   // already created and we cannot guarantee
+                                   // that what we are given will be fresh in
+                                   // the current context
         if (max_id > _max_id)
             return;
         max_id = _max_id;
@@ -44,8 +47,12 @@ template <class SATSolver> class aig2cnf {
     SATSolver &sat_solver;
     std::unordered_map<size_t, Lit> representatives;
     Var max_id;
-    const Lit true_lit;
+    Lit true_lit;
     Lit encode(const AigLit &l) {
+        if (true_lit == SATSPC::lit_Undef) {
+            true_lit = SATSPC::mkLit(fresh());
+            sat_solver.addClause(true_lit);
+        }
         // factory.print(std::cerr <<"encoding:", l, 2)<<std::endl;
         if (factory.is_true(l))
             return true_lit;

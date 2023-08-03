@@ -5,9 +5,12 @@
  * Copyright (C) 2019, Mikolas Janota
  */
 #pragma once
-extern "C" {
+#define LOGIPASIR(code)                                                        \
+    do {                                                                       \
+        code                                                                   \
+    } while (0)
+
 #include "ipasir.h"
-}
 #include "minisat/core/SolverTypes.h"
 #include <cassert>
 #include <cstdlib>
@@ -15,26 +18,48 @@ extern "C" {
 #include <string>
 #include <unordered_map>
 #include <vector>
+#define SATSPC Minisat
 namespace SATSPC {
 class IPASIRWrap {
   public:
+    std::unordered_map<std::string, SATSPC::Lit> *d_representatives = nullptr;
+    std::unordered_map<SATSPC::Var, std::string> *d_inverse_representatives =
+        nullptr;
     inline const Minisat::LSet &get_conflict() { return _conflict; }
     inline const Minisat::vec<Minisat::lbool> &get_model() { return _model; }
+
+    void set_representatives(
+        std::unordered_map<std::string, SATSPC::Lit> *representatives) {
+        assert(!d_representatives);
+        d_representatives = representatives;
+        d_inverse_representatives =
+            new std::unordered_map<SATSPC::Var, std::string>();
+        d_inverse_representatives->insert({1, "TRUE"});
+        for (const auto &i : *representatives) {
+            assert(!sign(i.second));
+            d_inverse_representatives->insert({var(i.second), i.first});
+        }
+    }
+
     IPASIRWrap() : _nvars(0) { _s = ipasir_init(); }
 
-    virtual ~IPASIRWrap() { ipasir_release(_s); }
-
-    inline void setFrozen(Var, bool) {}
-    inline void setPolarity(Var, lbool) {}
-    inline void bump(Var) {}
-    inline void releaseVar(Lit l) { addClause(l); }
-    inline bool simplify() { return true; }
-
+    virtual ~IPASIRWrap() {
+        ipasir_release(_s);
+        if (d_inverse_representatives) {
+            delete d_inverse_representatives;
+        }
+    }
     bool addClause(Minisat::vec<Minisat::Lit> &cl) {
         for (int i = 0; i < cl.size(); ++i)
             add(cl[i]);
         return f();
     }
+
+    inline void setPolarity(Var, lbool) {}
+    inline void bump(Var) {}
+    inline void releaseVar(Lit l) { addClause(l); }
+    inline bool simplify() { return true; }
+    inline void setFrozen(Var, bool) {}
 
     inline bool addClause_(Minisat::vec<Minisat::Lit> &cl) {
         return addClause(cl);
@@ -73,24 +98,43 @@ class IPASIRWrap {
         return f();
     }
 
+    inline Minisat::Var fresh() { return ++_nvars; }
+    inline bool is_ok_var(int v) { return 1 <= _nvars && v <= _nvars; }
     int nVars() const { return _nvars; }
-    int newVar() { return ++_nvars; }
-
+    inline Minisat::Var newVar() { return ++_nvars; }
     void new_variables(Var v) {
         if (_nvars < v)
-            _nvars = v + 1;
+            _nvars = v;
     }
 
-    inline Minisat::lbool get_model_value(Minisat::Var v) const {
-        return v < _model.size() ? _model[v] : l_Undef;
+    inline Minisat::lbool eval_lit(const Minisat::Lit &l) const {
+        const Minisat::lbool lval = _model[var(l)];
+        return lval == Minisat::l_Undef
+                   ? Minisat::l_Undef
+                   : (Minisat::sign(l) == (lval == Minisat::l_False)
+                          ? Minisat::l_True
+                          : Minisat::l_False);
     }
 
     bool solve(const Minisat::vec<Minisat::Lit> &assumps);
     bool solve();
+    inline std::ostream &print_literal(std::ostream &output,
+                                       const Minisat::Lit &p) {
+        output << (sign(p) ? '-' : '+');
+        const auto print_name =
+            d_representatives && d_inverse_representatives->find(var(p)) !=
+                                     d_inverse_representatives->end();
+        if (print_name)
+            output << "{" << d_inverse_representatives->at(var(p)) << "}";
+        else
+            output << var(p);
+        return output;
+    }
 
   private:
     /* const int           _verb = 1; */
     int _nvars;
+    Minisat::Lit _true_lit;
     void *_s;
     Minisat::vec<Minisat::Lit> _assumps;
     Minisat::LSet _conflict;
@@ -99,9 +143,13 @@ class IPASIRWrap {
         return Minisat::sign(p) ? -Minisat::var(p) : Minisat::var(p);
     }
 
-    inline void add(const Minisat::Lit &p) { ipasir_add(_s, lit2val(p)); }
+    inline void add(const Minisat::Lit &p) {
+        LOGIPASIR(print_literal(std::cerr, p) << " ";);
+        ipasir_add(_s, lit2val(p));
+    }
 
     inline bool f() {
+        LOGIPASIR(std::cerr << "0[ips]\n";);
         ipasir_add(_s, 0);
         return true;
     }
@@ -109,9 +157,12 @@ class IPASIRWrap {
 
 inline bool IPASIRWrap::solve(const Minisat::vec<Minisat::Lit> &assumps) {
     for (int i = 0; i < assumps.size(); ++i) {
+        LOGIPASIR(print_literal(std::cerr << "Assumption:", assumps[i])
+                      << '\n';);
         ipasir_assume(_s, lit2val(assumps[i]));
     }
     const auto rv = solve();
+    LOGIPASIR(std::cerr << "rv:" << (rv ? "SAT" : "UNSAT") << '\n';);
     if (!rv) {
         _conflict.clear();
         for (int i = 0; i < assumps.size(); ++i) {
