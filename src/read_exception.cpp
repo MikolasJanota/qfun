@@ -1,8 +1,5 @@
 #include "read_exception.h"
 
-ReadException::ReadException(const std::string &message) {
-    s = new char[message.size() + 1];
-    message.copy(s, message.size(), 0);
-}
+ReadException::ReadException(std::string message) : message(message) {}
 
-const char *ReadException::what() const throw() { return s; }
+const char *ReadException::what() const throw() { return message.c_str(); }

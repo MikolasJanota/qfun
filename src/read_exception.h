@@ -10,10 +10,9 @@
 using std::exception;
 class ReadException : public exception {
   public:
-    ReadException(const std::string &message);
-    ~ReadException() throw() { delete[] s; }
+    ReadException(std::string message);
     const char *what() const throw();
 
   private:
-    char *s;
+    std::string message;
 };

@@ -34,7 +34,7 @@ class StreamBuffer {
 
     virtual ~StreamBuffer() { delete[] buf; }
 
-    int operator*() { return (pos >= size) ? EOF : buf[pos]; }
+    [[nodiscard]] int operator*() const { return (pos >= size) ? EOF : buf[pos]; }
     void operator++() {
         pos++;
         assureLookahead();

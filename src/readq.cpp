@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath> // for abs
 #include <cstdio>
+#include <sstream>
 #include <string> // for string
 using SATSPC::mkLit;
 using std::max;
@@ -63,7 +64,7 @@ void ReadQ::read_quantification(Reader &in, Quantification &quantification) {
         const Var v = parse_variable(in);
         if (v == 0) {
             do {
-                skipLine(in);
+                in.skip_line();
             } while (*in == 'c');
             if (*in != qchar)
                 break;
@@ -79,9 +80,11 @@ void ReadQ::read_quantification(Reader &in, Quantification &quantification) {
 
 Var ReadQ::parse_variable(Reader &in) {
     if (*in < '0' || *in > '9') {
-        string s("unexpected char in place of a variable: ");
-        s += *in;
-        throw ReadException(s);
+        std::stringstream ss;
+        ss << in.get_line_number() << ":"
+           << "unexpected char in place of a variable: '"
+           << static_cast<char>(*in) << "'";
+        throw ReadException(ss.str());
     }
     Var return_value = 0;
     while (*in >= '0' && *in <= '9') {
@@ -100,9 +103,11 @@ int ReadQ::parse_lit(Reader &in) {
     } else if (*in == '+')
         ++in;
     if ((*in < '0') || (*in > '9')) {
-        string s("unexpected char in place of a literal: ");
-        s += *in;
-        throw ReadException(s);
+        std::stringstream ss;
+        ss << in.get_line_number() << ":"
+           << "unexpected char in place of a variable: '"
+           << static_cast<char>(*in) << "'";
+        throw ReadException(ss.str());
     }
     while (*in >= '0' && *in <= '9') {
         return_value = return_value * 10 + (*in - '0');
@@ -115,17 +120,17 @@ int ReadQ::parse_lit(Reader &in) {
 
 void ReadQ::read_header() {
     while (*r == 'c')
-        skipLine(r);
+        r.skip_line();
     if (*r == 'p') {
         _header_read = true;
-        skipLine(r);
+        r.skip_line();
     }
 }
 
 void ReadQ::read_quantifiers() {
     for (;;) {
         if (*r == 'c') {
-            skipLine(r);
+            r.skip_line();
             continue;
         }
         if (*r != 'e' && *r != 'a')
@@ -144,7 +149,7 @@ void ReadQ::read_clauses() {
         if (*in == EOF)
             break;
         if (*r == 'c') {
-            skipLine(in);
+            in.skip_line();
             continue;
         }
         ls.clear();

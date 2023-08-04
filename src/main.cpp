@@ -82,8 +82,11 @@ int run_qcir(Options &options, [[maybe_unused]] int argc,
     qcir_parser->parse();
     gzclose(in);
     auto &qcir_qfla = qcir_parser->formula();
-    if (options.verbose >3)
-      factory->print_fancy(std::cout << "input:" << qcir_qfla.pref << "(" << endl, qcir_qfla.matrix, 2) << ")" << endl;
+    if (options.verbose > 3)
+        factory->print_fancy(std::cout << "input:" << qcir_qfla.pref << "("
+                                       << endl,
+                             qcir_qfla.matrix, 2)
+            << ")" << endl;
 
     normalize_prefix(qcir_qfla.pref);
     // factory.print(cerr<<"read:\n", qcir_qfla.matrix)<<endl;
@@ -99,23 +102,17 @@ int run_qcir(Options &options, [[maybe_unused]] int argc,
     return rqs ? run_solver(qps) : run_solver(options, ps);
 }
 
-int run_cnf(const string &flafile, Options &options, [[maybe_unused]] int argc,
+int run_cnf(Options &options, [[maybe_unused]] int argc,
             [[maybe_unused]] char **argv) {
-    std::unique_ptr<Reader> fr;
-    gzFile ff = Z_NULL;
-    if (flafile.size() == 1 && flafile[0] == '-') {
-        fr.reset(new Reader(cin));
-    } else {
-        ff = gzopen(flafile.c_str(), "rb");
-        if (ff == Z_NULL) {
-            cerr << "ERROR: "
-                 << "Unable to open file: " << flafile << endl;
-            cerr << "ABORTING" << endl;
-            exit(100);
-        }
-        fr.reset(new Reader(ff));
+    const bool use_std = options.file_name == "-";
+    gzFile in =
+        use_std ? gzdopen(0, "rb") : gzopen(options.file_name.c_str(), "rb");
+    if (in == nullptr) {
+        cerr << "ERROR! Could not open file: " << options.file_name << endl;
+        exit(EXIT_FAILURE);
     }
-    ReadQ rq(*fr, false);
+    Reader rd(in);
+    ReadQ rq(rd, false);
     try {
         rq.read();
     } catch (ReadException &rex) {
@@ -124,8 +121,8 @@ int run_cnf(const string &flafile, Options &options, [[maybe_unused]] int argc,
         exit(100);
     }
     cout << "c done reading: " << read_cpu_time() << std::endl;
-    if (ff != Z_NULL)
-        gzclose(ff);
+    if (in != Z_NULL)
+        gzclose(in);
     if (!rq.get_header_read()) {
         cerr << "ERROR: Missing header." << endl;
         cerr << "ABORTING" << endl;
@@ -208,7 +205,7 @@ int main(int argc, char **argv) {
     const auto &flafile = options.file_name;
     int rv;
     if (ends_with(flafile, ".qcnf") || ends_with(flafile, ".qdimacs")) {
-        rv = run_cnf(flafile, options, argc, argv);
+        rv = run_cnf(options, argc, argv);
     } else {
         rv = run_qcir(options, argc, argv);
     }
