@@ -52,6 +52,8 @@ Rareqs::Rareqs(QuantifierType qt, const Options &options, AigFactory &factory)
       learning_interval(options.get_interval() ? options.get_interval_arg()
                                                : 16) {
     games.prop = factory.mk_true();
+    LOG(3, out() << "learning interval: " << learning_interval << endl;);
+    LOG(3, out() << "learning on: " << options.get_learn() << endl;);
 }
 
 Rareqs::~Rareqs() {}

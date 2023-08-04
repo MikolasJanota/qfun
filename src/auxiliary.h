@@ -232,11 +232,8 @@ inline void cleanup_vals(std::unordered_map<K, V *> &m) {
 }
 
 template <class T> inline void cleanup(std::vector<T *> &vs) {
-    auto i = vs.size();
-    while (i) {
-        i--;
-        delete vs[i];
-    }
+    for (auto p : vs)
+        delete p;
     vs.clear();
 }
 

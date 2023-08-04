@@ -280,7 +280,8 @@ int run_solver(const Options &options, Rareqs *ps) {
         while (1) {
             wm.clear();
             ps->get_move(wm);
-            print_winning_move(cout, wm);
+            if (qcir_parser) /* TODO */
+                print_winning_move(cout, wm);
             if (!options.get_win_mv_enum())
                 break;
             block_move(wm, ps);
