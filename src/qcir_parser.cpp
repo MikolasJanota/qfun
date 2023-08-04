@@ -196,14 +196,6 @@ std::ostream &QCIRParser::err() {
     return std::cerr << d_filename << ":" << d_ln << ":";
 }
 
-void QCIRParser::skip_end_of_line() {
-    while (true) {
-        if (*d_buf == EOF)
-            return;
-        ++d_buf;
-    }
-}
-
 int QCIRParser::skip() {
     int nls = 0;
     bool comment = false;

@@ -46,7 +46,6 @@ class QCIRParser {
     void nltoken();
     void nlchar();
     int skip();
-    void skip_end_of_line();
     void match_string(const char *s, bool run_skip = true);
     void match_char_token(char c);
     void match_char(char c);
