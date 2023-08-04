@@ -82,6 +82,9 @@ int run_qcir(Options &options, [[maybe_unused]] int argc,
     qcir_parser->parse();
     gzclose(in);
     auto &qcir_qfla = qcir_parser->formula();
+    if (options.verbose >3)
+      factory->print_fancy(std::cout << "input:" << qcir_qfla.pref << "(" << endl, qcir_qfla.matrix, 2) << ")" << endl;
+
     normalize_prefix(qcir_qfla.pref);
     // factory.print(cerr<<"read:\n", qcir_qfla.matrix)<<endl;
     // ps=new QSolver(qcir_qfla,options,factory);
@@ -203,6 +206,8 @@ int main(int argc, char **argv) {
 #endif
     app.add_flag("-v", options.verbose, "Add verbosity.")->default_val(0);
     CLI11_PARSE(app, argc, argv);
+
+    cout << "c verbosity: " << options.verbose << endl;
 
     factory = new AigFactory();
     const auto &flafile = options.file_name;
