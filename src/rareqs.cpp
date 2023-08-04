@@ -433,13 +433,6 @@ void RareqsSAT::add_game(const Game &g) {
 
 RareqsSAT::RareqsSAT(QuantifierType qt, const Options &options, AigFactory &fac)
     : RareqsBase(options, qt), factory(fac) {
-#if EXTERNAL_SAT
-    if (!options.get_external_sat()) {
-        std::cerr << "external solver needed (-X option)" << endl;
-        exit(100);
-    }
-    s.sat_solver_path = options.get_external_sat_arg();
-#endif
     enc.reset(new Encoder<SATSolver>(*this, 0, factory, s));
     if (options.get_seed()) {
 #ifdef USE_MINISAT

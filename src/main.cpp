@@ -196,11 +196,6 @@ int main(int argc, char **argv) {
     app.add_option("-n, --initial", options.initial,
                    "Initial refinement for quant levels <LEV>.")
         ->default_val(4);
-#if EXTERNAL_SAT
-    app.add_option("--external-sat", options.external_sat,
-                   "External SAT solver.")
-        ->default_val("");
-#endif
     app.add_flag("-v", options.verbose, "Add verbosity.")->default_val(0);
     CLI11_PARSE(app, argc, argv);
 
