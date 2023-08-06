@@ -53,6 +53,7 @@ class QCIRParser {
         skip();
         return *d_buf;
     }
+    void skip_line();
     std::ostream &err();
     std::stringstream d_varbuf;
 };
