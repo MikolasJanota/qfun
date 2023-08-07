@@ -81,6 +81,10 @@ int run_qcir(Options &options, [[maybe_unused]] int argc,
     qcir_parser = new QfunQCIRParser(buf, *factory);
     qcir_parser->parse();
     gzclose(in);
+
+    if (!qcir_parser->found_header()) {
+        cerr << "WARNING! missing header." << endl;
+    }
     auto &qcir_qfla = qcir_parser->formula();
     if (options.verbose > 3)
         factory->print_fancy(std::cout << "input:" << qcir_qfla.pref << "("
