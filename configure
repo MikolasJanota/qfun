@@ -5,7 +5,7 @@ set -u
 
 usage () {
 cat <<EOF
-usage: configure [-h|--help][-g|--debug][-e|--expert]
+usage: configure [-h|--help][-g|--debug][-c|--cadical][-r|--cms][-s|--static]
 
 -h | --help    print this command line option summary
 -g | --debug   compile with assertion checking and symbols

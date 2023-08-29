@@ -146,8 +146,6 @@ int run_cnf(Options &options, [[maybe_unused]] int argc,
 }
 
 int main(int argc, char **argv) {
-    // test_satsyn(); return 0;
-    cout << "c WARNING: this still needs to be tested" << endl;
     srand(0);
     signal(SIGTERM, SIG_handler);
     signal(SIGINT, SIG_handler);
